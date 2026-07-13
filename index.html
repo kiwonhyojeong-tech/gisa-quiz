@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>실기 암기 노트</title>
+<style>
+  :root{
+    --paper:#F7F6F1;
+    --card:#FFFFFF;
+    --ink:#232A35;
+    --ink-soft:#6B7280;
+    --line:#E5E2D9;
+    --correct:#1E7A4C;
+    --correct-bg:#EAF5EE;
+    --wrong:#C4373C;
+    --wrong-bg:#FBEEEE;
+    --accent:#2B4A8B;
+    --accent-soft:#EEF2FA;
+    --hl:#FFE9A8;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Pretendard','Noto Sans KR','Malgun Gothic',sans-serif;
+    line-height:1.6;
+    min-height:100vh;
+  }
+  .wrap{max-width:760px;margin:0 auto;padding:20px 16px 80px;}
+  header{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
+  h1{font-size:1.35rem;letter-spacing:-0.02em;}
+  h1 .mark{background:linear-gradient(transparent 55%,var(--hl) 55%);padding:0 2px;}
+  .sub{font-size:.8rem;color:var(--ink-soft);}
+  nav{display:flex;gap:6px;margin-bottom:18px;border-bottom:2px solid var(--line);padding-bottom:0;}
+  nav button{
+    background:none;border:none;font:inherit;font-size:.92rem;font-weight:600;
+    color:var(--ink-soft);padding:8px 12px;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;
+  }
+  nav button.on{color:var(--ink);border-bottom-color:var(--ink);}
+  nav button .badge{
+    display:inline-block;min-width:20px;text-align:center;font-size:.72rem;font-weight:700;
+    background:var(--wrong);color:#fff;border-radius:10px;padding:1px 6px;margin-left:4px;vertical-align:1px;
+  }
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:0 1px 3px rgba(35,42,53,.05);}
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px;}
+  .chip{
+    border:1px solid var(--line);background:var(--card);border-radius:999px;
+    font:inherit;font-size:.82rem;padding:5px 12px;cursor:pointer;color:var(--ink-soft);
+  }
+  .chip.on{background:var(--ink);color:#fff;border-color:var(--ink);}
+  .progress{margin-left:auto;font-size:.82rem;color:var(--ink-soft);font-variant-numeric:tabular-nums;}
+  .tag{
+    display:inline-block;font-size:.72rem;font-weight:700;color:var(--wrong);
+    background:var(--wrong-bg);border-radius:6px;padding:2px 8px;margin-bottom:10px;
+  }
+  .qtext{white-space:pre-wrap;font-size:.98rem;margin-bottom:18px;}
+  .blanks{display:flex;flex-direction:column;gap:10px;margin-bottom:14px;}
+  .blank-row{display:flex;align-items:center;gap:8px;}
+  .blank-row .num{font-size:.9rem;color:var(--accent);font-weight:700;flex-shrink:0;width:24px;text-align:center;}
+  .blank-row input{
+    flex:1;font:inherit;font-size:.95rem;padding:10px 12px;border:1.5px solid var(--line);
+    border-radius:10px;background:#FCFBF8;outline:none;min-width:0;
+  }
+  .blank-row input:focus{border-color:var(--accent);background:#fff;}
+  .blank-row input.ok{border-color:var(--correct);background:var(--correct-bg);}
+  .blank-row input.no{border-color:var(--wrong);background:var(--wrong-bg);}
+  .btn-row{display:flex;gap:8px;flex-wrap:wrap;}
+  button.primary,button.ghost,button.danger-ghost{
+    font:inherit;font-size:.9rem;font-weight:600;border-radius:10px;padding:10px 18px;cursor:pointer;border:1.5px solid transparent;
+  }
+  button.primary{background:var(--ink);color:#fff;}
+  button.primary:active{transform:translateY(1px);}
+  button.ghost{background:none;border-color:var(--line);color:var(--ink-soft);}
+  button.danger-ghost{background:none;border-color:var(--line);color:var(--wrong);}
+  .result{margin-top:16px;padding-top:16px;border-top:1px dashed var(--line);animation:pop .25s ease;}
+  @keyframes pop{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+  .verdict{font-weight:800;font-size:1.02rem;margin-bottom:8px;}
+  .verdict.ok{color:var(--correct);}
+  .verdict.no{color:var(--wrong);}
+  .verdict.part{color:#B07B10;}
+  .ans-line{font-size:.9rem;margin-bottom:4px;}
+  .ans-line .lbl{color:var(--ink-soft);margin-right:6px;}
+  .ans-line .ok{color:var(--correct);font-weight:700;}
+  .ans-line .no{color:var(--wrong);font-weight:700;text-decoration:line-through;text-decoration-thickness:1.5px;}
+  .ans-line .real{color:var(--correct);font-weight:700;}
+  .explain{
+    margin-top:12px;background:var(--accent-soft);border-radius:10px;padding:12px 14px;
+    font-size:.88rem;white-space:pre-wrap;line-height:1.65;
+  }
+  .explain .ex-lbl{display:block;width:fit-content;font-weight:800;color:var(--accent);margin-bottom:6px;font-size:.76rem;background:#fff;border-radius:6px;padding:1px 8px;}
+  .hint{font-size:.78rem;color:var(--ink-soft);margin-top:10px;}
+  .empty{padding:40px 10px;text-align:center;color:var(--ink-soft);font-size:.92rem;}
+  .done-card{text-align:center;padding:40px 20px;}
+  .done-card .big{font-size:2rem;font-weight:800;margin-bottom:6px;}
+  .done-card .big .c{color:var(--correct);}
+  /* 관리 */
+  .qlist{display:flex;flex-direction:column;gap:10px;}
+  .qitem{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;}
+  .qitem .preview{font-size:.88rem;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap;}
+  .qitem .meta{font-size:.76rem;color:var(--ink-soft);display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  .qitem .meta .ansview{color:var(--correct);font-weight:600;}
+  .qitem .acts{display:flex;gap:6px;margin-top:8px;}
+  .qitem .acts button{font:inherit;font-size:.78rem;padding:4px 10px;border-radius:8px;border:1px solid var(--line);background:none;cursor:pointer;color:var(--ink-soft);}
+  .qitem .acts button.del{color:var(--wrong);}
+  .form-card label{display:block;font-size:.82rem;font-weight:700;margin:14px 0 6px;color:var(--ink);}
+  .form-card label:first-child{margin-top:0;}
+  .form-card textarea,.form-card input[type=text]{
+    width:100%;font:inherit;font-size:.92rem;padding:10px 12px;border:1.5px solid var(--line);
+    border-radius:10px;background:#FCFBF8;outline:none;
+  }
+  .form-card textarea{min-height:110px;resize:vertical;}
+  .form-card textarea:focus,.form-card input:focus{border-color:var(--accent);background:#fff;}
+  .blank-edit{display:flex;gap:8px;margin-bottom:8px;align-items:center;}
+  .blank-edit .num{font-size:.85rem;color:var(--accent);font-weight:700;width:22px;flex-shrink:0;text-align:center;}
+  .blank-edit input{flex:1;}
+  .blank-edit .rm{border:none;background:none;color:var(--ink-soft);cursor:pointer;font-size:1rem;padding:4px;}
+  .mini{font-size:.78rem;color:var(--ink-soft);margin-top:4px;}
+  .check-row{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:.86rem;}
+  .add-blank{font:inherit;font-size:.8rem;border:1px dashed var(--line);background:none;border-radius:8px;padding:6px 12px;cursor:pointer;color:var(--accent);font-weight:600;}
+  .toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:var(--ink);color:#fff;font-size:.85rem;padding:10px 20px;border-radius:999px;
+    opacity:0;pointer-events:none;transition:opacity .25s;z-index:50;box-shadow:0 4px 14px rgba(0,0,0,.2);
+  }
+  .toast.show{opacity:1;}
+  .loading{text-align:center;padding:60px 0;color:var(--ink-soft);}
+  .boot-help{
+    opacity:0;animation:bootShow .4s ease 2.5s forwards;
+    margin:24px auto 0;max-width:420px;text-align:left;
+    background:#FFF6E5;border:1px solid #F0DCB0;border-radius:12px;
+    padding:14px 16px;font-size:.85rem;color:var(--ink);line-height:1.7;
+  }
+  @keyframes bootShow{to{opacity:1;}}
+  .statline{font-size:.8rem;color:var(--ink-soft);margin-bottom:14px;}
+  .statline b{color:var(--ink);}
+  @media (max-width:480px){
+    .wrap{padding:14px 10px 70px;}
+    .card{padding:16px 14px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1><span class="mark">실기 암기 노트</span></h1>
+    <span class="sub" id="totalCount"></span>
+  </header>
+  <nav>
+    <button id="tab-quiz" class="on">문제 풀기</button>
+    <button id="tab-wrong">오답 노트<span class="badge" id="wrongBadge" style="display:none">0</span></button>
+    <button id="tab-manage">문제 관리</button>
+  </nav>
+  <main id="view"><div class="loading">불러오는 중…<div class="boot-help">⚠️ 이 메시지가 3초 이상 계속 보인다면,<br>지금 연 프로그램(미리보기·문서뷰어 등)이 자바스크립트를 실행하지 않는 환경입니다.<br><br><b>해결 방법</b>: 파일을 기기에 저장(다운로드)한 뒤,<br>Chrome · Safari · 삼성 인터넷 같은 <b>브라우저 앱으로 직접 열어주세요.</b></div></div></main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* 오류가 나면 멈추지 않고 화면에 표시 */
+window.onerror=function(msg,src,line){
+  var v=document.getElementById('view');
+  if(v)v.innerHTML='<div class="card" style="color:#C4373C;font-size:.88rem;line-height:1.7;">⚠️ 오류가 발생했어요.<br><b>'+msg+'</b> (줄 '+line+')<br><br>이 화면을 캡처해서 알려주시면 바로 고칠 수 있어요.</div>';
+  return true;
+};
+
+const STORE_KEY='gisa-quiz-v1';
+
+/* ---------- 저장소 어댑터: Claude → localStorage → 메모리 순 ---------- */
+const MEM={};
+let storageMode='memory';
+function detectStorage(){
+  try{if(window.storage&&typeof window.storage.get==='function'){storageMode='claude';return;}}catch(e){}
+  try{const t='__probe_'+Date.now();localStorage.setItem(t,'1');localStorage.removeItem(t);storageMode='local';return;}catch(e){}
+  storageMode='memory';
+}
+async function storeGet(k){
+  if(storageMode==='claude')return await window.storage.get(k);
+  if(storageMode==='local'){const v=localStorage.getItem(k);return v===null?null:{key:k,value:v};}
+  return MEM[k]!==undefined?{key:k,value:MEM[k]}:null;
+}
+async function storeSet(k,v){
+  if(storageMode==='claude')return await window.storage.set(k,v);
+  if(storageMode==='local'){localStorage.setItem(k,v);return{key:k,value:v};}
+  MEM[k]=v;return{key:k,value:v};
+}
+let DB={questions:[],stats:{}}; // stats[id]={att,ok,lastOk}
+let tab='quiz';
+let session=null; // {ids:[],idx,ok,mode,submitted,lastResult}
+let editingId=null;
+
+/* ---------- 초기 문제 20개 ---------- */
+const SEED=[
+ {q:"다음 설명에 해당하는 프로토콜을 쓰시오.\n\nIPv4의 주소 부족 문제를 해결하기 위해 등장한 차세대 인터넷 프로토콜로, 128비트 길이의 주소 체계를 사용하며 보안 기능과 자동 주소 설정(Stateless Address Autoconfiguration), 멀티캐스트 등을 기본으로 지원한다.",b:[["IPv6"]]},
+ {q:"다음 설명에 해당하는 데이터베이스 회복 기법을 쓰시오.\n\n트랜잭션 수행 중 변경된 데이터를 즉시 데이터베이스에 반영하며, 장애 발생 시 로그를 이용해 REDO와 UNDO 연산을 모두 수행할 수 있어야 하는 회복 기법.",b:[["즉각 갱신","즉시 갱신","Immediate Update"]]},
+ {q:"데이터베이스 설계 시 발생할 수 있는 이상(Anomaly) 현상 3가지를 쓰시오.",b:[["삽입 이상","삽입","Insertion Anomaly"],["삭제 이상","삭제","Deletion Anomaly"],["갱신 이상","갱신","Update Anomaly"]],unordered:true},
+ {q:"다음 설명에 해당하는 용어를 쓰시오.\n\n오픈 소스를 기반으로 한 분산 컴퓨팅 플랫폼으로, 일반 PC급 컴퓨터들로 가상화된 대형 스토리지를 형성하여 다양한 소스로부터 생성된 빅데이터를 효율적으로 저장하고 처리한다. HDFS와 MapReduce를 핵심 구성 요소로 한다.",b:[["Hadoop","하둡"]]},
+ {q:"다음 설명에 해당하는 용어를 쓰시오.\n\nP2P 네트워크 참여자들의 거래 정보를 암호화 기술로 연결된 블록 단위로 저장하여 모든 참여자가 공유하는 분산형 디지털 원장 기술.",b:[["블록체인","Blockchain"]]},
+ {q:"프로세스의 주요 상태를 다음 설명과 매칭하시오.\n\n- ( ① ): CPU를 할당받기 위해 대기열에서 기다리는 상태.\n- ( ② ): CPU를 할당받아 명령어를 수행하는 상태.\n- ( ③ ): 입출력 등의 사건이 완료될 때까지 CPU를 반납하고 기다리는 상태.",b:[["준비","Ready"],["실행","Run","Running"],["대기","Wait","Waiting","Block","Blocked"]]},
+ {q:"다음 설명에 해당하는 운영체제를 쓰시오.\n\n여러 사용자가 동시에 사용할 수 있는 다중 사용자(Multi-User) 시스템이며, 다중 작업(Multi-Tasking)을 지원한다. C 언어로 작성되어 이식성이 높고, 트리 구조의 계층적 파일 시스템과 강력한 셸(Shell)을 제공하는 시분할 운영체제.",b:[["UNIX","유닉스"]]},
+ {q:"다음 설명에 해당하는 테스트 오라클의 종류를 쓰시오.\n\n전수(全數) 입력값에 대해 기댓값을 제공하는 것이 불가능할 때, 일부의 특정 입력값들에 대해서만 기댓값을 제공하는 오라클.",b:[["샘플링 오라클","Sampling Oracle","샘플링"]]},
+ {q:"다음 설명에 해당하는 정보 보안의 3대 요소 중 하나를 쓰시오.\n\n인가된 사용자가 정보 자산에 접근하고자 할 때 방해받지 않고 즉시 접근할 수 있어야 한다는 특성.",b:[["가용성","Availability"]]},
+ {q:"다음 설명에 해당하는 공격 기법을 쓰시오.\n\n네트워크 상을 지나다니는 암호화되지 않은 데이터 패킷을 몰래 엿보는 수동적(passive) 공격 행위로, 공격자가 직접 네트워크에 영향을 주지 않고 정보를 수집한다.",b:[["Sniffing","스니핑"]]},
+ {q:"다음 설명에 해당하는 블랙박스 테스트 기법을 쓰시오.\n\n입력 데이터의 영역을 유효한 값과 무효한 값으로 나누고, 각 영역에서 대표값을 선정하여 테스트 케이스로 도출하는 기법.",b:[["동등 분할","Equivalence Partitioning","동치 분할"]]},
+ {q:"다음 설명에 해당하는 테스트 기법을 영문으로 쓰시오.\n\n오류를 제거하거나 수정한 시스템이나 시스템 컴포넌트 또는 프로그램이 오류 제거와 수정에 의해 새로이 유입된 오류가 없는지를 확인하는 일종의 반복 시험이다.",b:[["Regression"]]},
+ {q:"다음은 관계 데이터 모델과 관련된 설명이다. 괄호 ( ) 안에 공통적으로 들어갈 용어를 쓰시오.\n\n( )은/는 관계 데이터베이스에 대한 비절차적 언어이며, 수학의 Predicate Calculus에 기반을 두고 있다. Codd 박사에 의하여 제시되었으며, 튜플 ( ), 도메인 ( )이/가 있다.",b:[["관계 해석","관계해석"]]},
+ {q:"괄호 안에 공통으로 들어갈 단어(영어 약자)를 적으시오.\n\n( )은/는 인터넷 등 공중 네트워크를 암호화 기술을 통해 사용자가 전용회선을 사용하는 것처럼 도와주는 보안 기술입니다. 사용자 IP주소를 암호화하고 데이터를 암호화하여 전송하는 기술입니다.",b:[["VPN"]]},
+ {q:"다음은 암호화 알고리즘에 대한 설명이다. 괄호 안에 들어갈 가장 적절한 용어를 쓰시오.\n\n( 1 )은/는 초기에 제시된 블록 암호화 알고리즘으로 128bit 키를 사용하여 64bit 평문을 8라운드에 거쳐 64bit의 암호문으로 만든다.\n\n( 2 )은/는 NSA에서 개발한 블록 알고리즘으로 전화기와 같은 음성을 암호화하는 데 주로 사용된다. 64bit 입출력과 80bit 키를 사용한다.",b:[["IDEA"],["Skipjack"]]},
+ {q:"다음은 UML(Unified Modeling Language)에 대한 설명이다. 괄호 ( ) 안에 들어갈 알맞은 용어를 쓰시오.\n\nUML은 통합 모델링 언어로 구성 요소로는 사물, ( ① ), 다이어그램으로 이루어져 있으며, 구조 다이어그램 중 ( ② ) 다이어그램은 시스템에서 사용되는 객체 타입을 정의하고 속성과 연산을 표현한다. ( ③ )은/는 클래스와 같은 기타 모델 요소가 구현해야 하는 오퍼레이션 세트를 정의하는 모델 요소이다.",b:[["관계"],["클래스"],["인터페이스"]],tag:"[실기]22년3회"},
+ {q:"다음에서 설명하는 용어를 쓰시오.\n\n- 커버로스에서 사용되는 기술로 한 번의 인증 과정으로 여러 컴퓨터상의 자원을 이용할 수 있도록 해주는 인증 기술",b:[["SSO"]]},
+ {q:"다음 ( ) 안에 들어갈 알맞은 용어를 쓰시오.\n\n- ( ① )은/는 보안학적 측면에서 기술적인 방법이 아닌 사람들 간의 기본적인 신뢰를 기반으로 사람을 속여 비밀 정보를 획득하는 기법이다.\n- ( ② )은/는 빅데이터와 비슷하면서도 구조화돼 있지 않고, 더는 사용하지 않는 '죽은' 데이터를 의미한다.",b:[["사회공학","Social Engineering"],["다크 데이터","Dark Data"]]},
+ {q:"다음에서 설명하는 용어의 영문 약자를 쓰시오.\n\n머신러닝 기술을 이용하여 IT 시스템에서 발생하는 대량의 로그를 통합 관리 및 분석하여 사전에 위협에 대응하는 보안 솔루션이다.",b:[["SIEM"]]},
+ {q:"다음 ( ) 안에 들어갈 알맞은 용어를 쓰시오.\n\n- ( ① )은/는 프로세서 안에 독립적인 보안 구역을 따로 두어 중요한 정보를 보호하는 ARM사에서 개발한 하드웨어 기반의 보안 기술이다.\n- ( ② )은/는 사용자들이 사이트에 접속할 때 주소를 잘못 입력하는 실수를 이용하여 유사한 유명 도메인을 미리 등록하는 일이다.",b:[["TrustZone","트러스트존"],["Typosquatting","타이포스쿼팅"]],tag:"[실기]22년3회"},
+ {q:"괄호 안에 설명에 맞는 UML 클래스 다이어그램 관계를 보기에서 골라 작성하시오.\n\n- 하나의 사물이 다른 사물에 포함되어 있는 관계이며, 전체와 부분으로 구분되어지고 클래스간 서로 독립적인 관계는 ( ① ) 관계입니다.\n- 하나의 사물이 다른 사물에 비해 일반적인지 구체적인지를 표현하는 관계는 ( ② ) 관계입니다.\n\n[보기] Classification / Dependency / Composition / Realization / Aggregation / Generalization",b:[["Aggregation"],["Generalization"]]},
+ {q:"다음은 OSI 7 Layer에 대한 설명이다. 각 항목에 해당하는 계층을 보기에서 골라 쓰시오.\n\n① 직접적으로 연결된 두 개의 노드 사이에 데이터 전송을 가능하게 하고, 오류를 수정\n② 단말기 간 데이터 전송을 위한 최적화된 경로 제공\n③ 데이터의 압축과 형식 설정, 암·복호화를 담당\n\n[보기] 전송 / 응용 / 데이터 링크 / 물리 / 세션 / 네트워크 / 표현",b:[["데이터 링크","Data Link"],["네트워크","Network"],["표현","Presentation"]]},
+ {q:"다음은 3A에 대한 설명이다. 각각이 설명하는 3A의 구성 요소를 영어로 쓰시오.\n\n① 접근을 시도하는 가입자 또는 단말에 대한 식별 및 검증\n② 검증된 가입자나 단말에게 어떤 수준의 권한과 서비스를 허용\n③ 리소스 사용에 대한 정보를 수집하고 관리하는 서비스",b:[["Authentication"],["Authorization"],["Accounting"]]},
+ {q:"다음 괄호 안에 들어갈 답을 작성하세요.\n\nUML 중 ( ) 다이어그램은 속성, 메서드를 포함한다.\n\n( ) 다이어그램은 도메인 구조를 나타내어 보이지 않는 도메인 내 추상적인 개념을 표현한다.",b:[["클래스","Class"]],tag:"[실기]21년3회"},
+ {q:"럼바우 데이터 모델링 중에서 다음이 설명하는 모델링 유형을 보기에서 골라서 쓰시오.\n\n① 프로세스들의 자료 흐름을 중심으로 처리 과정을 표현하는 모델링으로 자료 흐름도(DFD)를 활용하여 표현\n② 시간의 흐름에 따라 객체들 사이의 제어 흐름, 동작 순서 등의 동적인 행위를 표현하는 모델링으로 상태 다이어그램을 활용하여 표현\n③ 시스템에서 요구하는 객체를 찾고 객체 간의 관계를 정의하여 ER 다이어그램을 만드는 과정까지의 모델링으로 객체 다이어그램을 활용하여 표현\n\n[보기] Object / Duration / Functional / Rebuilding / Architecture / Cause-Effect / Dynamic / Transaction / Constraint / Operation / Sequence",b:[["Functional"],["Dynamic"],["Object"]]},
+ {q:"다음 빈칸 ①, ②에 해당하는 용어를 영문 약어로 쓰시오.\n\n① 사용자가 시스템을 사용하면서 느끼는 감정이나 경험을 말한다.\n② 사용자가 컴퓨터, 시스템 등과 정보 또는 명령을 주고받을 수 있도록 하는 매개체이다. 예시로는 CLI 등이 있다.",b:[["UX"],["UI"]]},
+ {q:"다음은 요구사항의 분류에 대한 설명이다. 괄호 ( ) 안에 들어갈 요구사항의 유형에 대해서 쓰시오.\n\n• ( ① ) 요구사항은 시스템이 제공하는 기능, 서비스에 대한 요구사항이다.\n• ( ② ) 요구사항은 시스템이 수행하는 기능 이외의 사항, 시스템 구축에 대한 제약사항에 관한 요구사항이다.",b:[["기능적","기능"],["비기능적","비기능"]]},
+ {q:"공유메모리, 소켓, 세마포어, 메시지 큐 등 프로세스 간 통신하는 기술을 무엇이라고 하는지 쓰시오.",b:[["IPC","Inter Process Communication"]]},
+ {q:"시스템 객체의 접근을 개인 또는 그룹의 식별자에 기반을 둔 방법, 어떤 종류의 접근 권한을 가진 사용자가 다른 사용자에 자신의 판단에 따라 권한을 허용하는 접근제어 방식은?",b:[["DAC","Discretionary Access Control","임의적 접근 통제","임의적 접근 제어","임의 접근 통제"]]},
+ {q:"정규화된 엔티티, 속성, 관계에 대해 성능 향상과 개발 운영의 단순화를 위해 중복, 통합, 분리 등을 수행하는 데이터 모델링의 기법을 무엇이라고 하는지 쓰시오.",b:[["반정규화","비정규화","Denormalization"]]},
+ {q:"웹 서비스명, 제공 위치, 메시지 포맷, 프로토콜 정보 등 웹 서비스에 대한 상세 정보가 기술된 XML 형식으로 구성된 언어를 무엇이라고 하는지 쓰시오.",b:[["WSDL"]]},
+ {q:"다음 설명에 해당하는 자바 단위 테스트 프레임워크의 명칭을 쓰시오.\n\n자바 프로그램의 단위(메서드·클래스) 테스트를 자동화하기 위한 xUnit 계열의 오픈소스 테스트 프레임워크로, @Test 등의 애너테이션을 사용해 테스트 코드를 작성한다.",b:[["JUnit"]]},
+ {q:"다음은 리스트와 관련된 파이썬 함수이다. 각 항목에 해당하는 함수를 쓰시오.\n\n① 리스트 확장, 여러 값을 한 번에 추가할 수 있는 함수\n② 마지막 또는 지정 요소를 삭제하고 그 값을 반환하는 함수\n③ 역순으로 뒤집는 함수",b:[["extend"],["pop"],["reverse"]]},
+ {q:"다음은 데이터베이스 이상(Anomaly) 현상 중 하나에 대한 설명이다. 빈칸에 들어갈 용어를 쓰시오.\n\n릴레이션의 한 튜플을 삭제할 때 의도하지 않은 다른 데이터까지 함께 삭제되어 정보가 손실되는 현상을 ( ① ) 이상이라고 한다.",b:[["삭제","Deletion"]]},
+ {q:"다음 설명에 해당하는 무선랜 보안 프로토콜의 영문 약자를 쓰시오.\n\nWEP의 취약점을 보완하기 위해 IEEE 802.11i 표준의 일부로 설계된 무선랜 보안 프로토콜로, 임시 키 무결성 프로토콜이라고도 한다. 패킷마다 키를 동적으로 변경(키 믹싱)하고 메시지 무결성 검사(MIC)를 적용한다.",b:[["TKIP"]]},
+ {q:"다음에서 설명하는 용어를 쓰시오.\n\n- 사용자가 비밀번호를 제공하지 않고 다른 웹사이트나 애플리케이션의 접근 권한을 부여할 수 있게 하는 개방형 표준기술이다.\n- 구글, 페이스북 등의 외부 계정을 기반으로 토큰을 이용하여 간편하게 회원가입 및 로그인할 수 있는 기술이다.",b:[["OAuth"]]},
+ {q:"다음은 소스 코드 분석 도구에 대한 설명이다. 빈칸 ( ① ), ( ② )에 들어갈 영문 용어를 쓰시오.\n\n- ( ① ) 분석 도구는 소스 코드를 실행하지 않고 코딩 표준 준수 여부, 문법 오류, 잠재적 결함 등을 검사한다. (예: pmd, cppcheck, SonarQube)\n- ( ② ) 분석 도구는 프로그램을 실행하면서 메모리 누수, 보안 취약점, 코드 커버리지 등을 검사한다. (예: Avalanche, Valgrind)",b:[["static"],["dynamic"]]},
+ {q:"다음 설명에 해당하는 신기술 용어의 영문 약자를 쓰시오.\n\n키보드나 마우스 같은 입력 장치 없이 사용자의 말, 행동, 표정, 감정 등 자연스러운 표현을 통해 컴퓨터·기기와 상호작용할 수 있도록 하는 사용자 인터페이스이다.",b:[["NUI"]]},
+ {q:"포트번호로 22번을 사용하며 인증, 암호화를 제공하고 Telnet보다 강력한 보안을 제공하는 프로토콜은?",b:[["SSH","Secure Shell"]],tag:"[실기]25년2회 · 23년1회"},
+ {q:"다음에서 설명하는 용어를 쓰시오.\n\n소프트웨어의 위·변조가 발생할 경우, 소프트웨어가 정상적으로 실행되지 않도록 실행 코드를 변형하거나 동작을 중단시키는 기법으로, 외부 공격자나 악의적인 사용자가 소스 코드를 분석·변경하지 못하도록 하여 소프트웨어의 무결성을 보장하는 보호 기술이다.",b:[["탬퍼프루핑","Tamperproofing","Tamper Proofing"]]},
+ {q:"다음은 암호화 알고리즘에 대한 설명이다. 괄호 안에 들어갈 가장 적절한 용어를 쓰시오.\n\n( 1 )은/는 암호화와 복호화에 사용하는 키가 동일하다. 비밀키 전달을 위한 키교환이 필요하다.\n\n( 2 )은/는 공개키와 개인키가 존재하며, 공개키는 모두에게 공개되고, 개인키는 소유자만 알 수 있다.",b:[["대칭키","대칭키 암호화","Symmetric"],["비대칭키","비대칭키 암호화","Asymmetric","공개키"]]},
+ {q:"다음 설명에 해당하는 보안 용어를 보기에서 고르시오.\n\n- 인터넷 공격자의 존재를 숨기면서 이 공격자에게 시스템에 대한 무제한 접근 권한을 부여하는 악성 프로그램이다.\n- 해커가 자신의 존재를 숨기면서 허가되지 않은 컴퓨터나 소프트웨어에 접근할 수 있도록 설계된 도구이다.\n- 시스템 침입 후 침입 사실을 숨긴 채 차후의 침입을 위한 백도어, 트로이목마 설치, 그리고 원격접근, 내부 사용 흔적 삭제, 관리자 권한 획득 등 주로 불법적인 해킹에 사용되는 기능들을 제공하는 프로그램들의 모음이다.\n- 해커와 같이 일반적으로 권한이 없는 사용자가 접근할 수 없는 영역에 접근하여 시스템을 제어하도록 설계된 악성 소프트웨어 모음이다.\n- 일반적으로 펌웨어, 가상화 계층 등의 다양한 시스템 영역에서 작동하며, 운영체제의 시스템콜을 해킹하여 악성코드의 실행 여부를 숨겨 안티바이러스 탐지를 우회할 수 있다.\n\n[보기] Trojan horse / Worm / Rootkit / Virus / Spyware / Ransomware / Backdoor",b:[["Rootkit","루트킷"]]},
+ {q:"컬렉션의 내부 구조를 노출하지 않고 요소에 순차적으로 접근하는 방법을 제공하는 패턴을 영어로 쓰시오\n\n[보기] Observer / Strategy / Iterator / Composite / Template Method",b:[["Iterator","반복자","이터레이터"]]},
+ {q:"다음에서 설명하는 공격 기법을 영어로 쓰시오.\n\n출발지 주소를 공격 대상의 IP로 변조하여 네트워크 전체에게 ICMP Echo 패킷을 직접 브로드캐스팅(Directed Broadcasting)하여 타깃 시스템을 마비시키는 공격\n\n[보기] ping of death / land attack / syn flooding / tear drop / smurf / udp flooding",b:[["smurf","스머프","smurfing"]]},
+ {q:"괄호 안에 설명에 맞는 UML 클래스 다이어그램 관계를 보기에서 골라 작성하시오.\n\n- 2개 이상의 사물이 서로 관련되어있는 상태를 표현하는 관계는 ( ① ) 관계입니다.\n- 하나의 사물이 다른 사물에 비해 일반적인지 구체적인지를 표현하는 관계는 ( ② ) 관계입니다.\n- 사물 사이에 연관은 있으나 필요에 따라 영향을 미치고 짧은 시간 동안만 연관을 유지하는 관계를 표현하는 관계는 ( ③ ) 관계입니다.\n\n[보기] 일반화 / 의존 / 실체화 / 포함 / 연관 / 집합",b:[["연관","Association"],["일반화","Generalization"],["의존","Dependency"]]},
+ {q:"HTTP, HTTPS, SMTP를 통해서 XML 기반의 데이터를 주고받는 프로토콜로 웹 서비스 방식에 HTTP기반의 ( ① )을/를 사용하여 송수신한다. ( ① ) 대신 레스트풀(RESTful) 프로토콜로 대체할 수 있다. ( ① )에 들어갈 용어를 쓰시오.",b:[["SOAP","Simple Object Access Protocol"]]},
+ {q:"응집도 유형 중, 특정 시점에 함께 실행되어야 하는 기능들을 하나의 모듈로 묶은 경우의 응집도를 ( ) 응집도라고 한다. 예를 들어 시스템 초기화 시점에 한 번에 수행되는 변수 초기화, 로그 파일 열기, 설정 로드 등이 하나의 모듈에 모여 있는 경우가 이에 해당한다.\n\n[보기] 절차적 / 순차적 / 시간적 / 기능적 / 통신적 / 우연적 / 논리적",b:[["시간적","Temporal"]]},
+ {q:"특별한 객체를 먼저 생성하고 그 객체의 인스턴스를 복제하는 방식으로 객체를 생성하는 디자인 패턴\n\n[보기] Factory Method / Singleton / Prototype / Builder / Abstract Factory",b:[["Prototype","프로토타입"]]},
+ {q:"특정 클래스의 인스턴스를 하나만 생성하도록 하고 이 인스턴스에 대한 접근 방법을 제공하는 디자인 패턴은?\n\n[보기] Adapter / Proxy / Singleton / Facade / Decorator",b:[["Singleton","싱글톤"]]},
+ {q:"입출력 간 연관성은 없으나 순서에 따라 실행되어야 하는 경우의 응집도를 ( ) 응집도라고 한다.\n\n[보기] 절차적 / 순차적 / 기능적 / 우연적 / 통신적 / 논리적 / 시간적",b:[["절차적","Procedural"]]},
+ {q:"EAI(Enterprise Application Integration)의 구축 유형에는 메시지 버스(Message Bus), 하이브리드(Hybrid), ( ① ), ( ② )의 4가지가 있다. 빈칸 ( ① ), ( ② )에 들어갈 유형을 보기에서 고르시오.\n\n[보기] 허브 앤 스포크 / 하이브리드 / 포인트 투 포인트 / 메시지 버스 / 버스 / 스타",b:[["포인트 투 포인트","Point-to-Point","P2P","포인트투포인트"],["허브 앤 스포크","Hub & Spoke","Hub and Spoke","허브앤스포크"]],unordered:true},
+ {q:"다익스트라 알고리즘을 이용한 대규모 네트워크에 적합한 링크 상태 라우팅 프로토콜은 무엇인지 영어 약어로 쓰시오.",b:[["OSPF","Open Shortest Path First"]]},
+ {q:"톰 마릴(Tom Marill)이 정의한, 서로 다른 시스템 간 데이터 통신을 가능하게 하는 \"기술적 은어(technical syntax)\"를 뜻하는 용어가 무엇인지 쓰시오.",b:[["프로토콜","Protocol"]]},
+ {q:"동치분할 테스트, 경계값 분석 테스트 등을 포함하는 테스트 기법이 무엇인지 쓰시오.",b:[["블랙박스 테스트","Black Box Testing","명세 기반 테스트","블랙박스"]]},
+ {q:"다음 설명에 해당하는 UI 설계 원칙을 쓰시오.\n\n누구나 쉽게 이해하고 사용할 수 있어야 하며, 쉬운 검색과 사용성, 일관성의 특성을 가진다.",b:[["직관성","Intuitiveness"]]},
+ {q:"데이터베이스 3계층 스키마 중 다음 설명에 해당하는 스키마를 각각 쓰시오.\n\n- ( ① ): 사용자나 응용 프로그램 개발자 입장에서 필요로 하는 데이터베이스의 논리적 구조를 정의한다(서브 스키마).\n- ( ② ): 데이터베이스의 전체적인 논리 구조를 정의하며, 모든 응용 시스템과 사용자가 사용하는 데이터베이스를 통합한 조직 전체의 데이터베이스를 기술한다.\n- ( ③ ): 데이터베이스가 저장 장치에 실제로 어떻게 저장되는지를 정의하는 물리적 저장 구조에 대한 스키마이다.",b:[["외부 스키마","External Schema","외부"],["개념 스키마","Conceptual Schema","개념"],["내부 스키마","Internal Schema","내부"]]},
+ {q:"회사 테이블에 부서명 속성을 추가하는 SQL 문을 작성하시오. 빈칸 ( ① ), ( ② )을 채우시오.\n\n( ① ) TABLE 회사 ( ② ) 부서명 VARCHAR(30);",b:[["ALTER"],["ADD"]]},
+ {q:"TCP/IP에서 IP 패킷의 전송 과정에서 오류가 발생했을 때, 송신 측에 오류 정보나 네트워크 상태 진단 메시지를 보내는 데 사용되는 프로토콜이 무엇인지 영어 약어로 쓰시오.",b:[["ICMP","Internet Control Message Protocol"]]},
+ {q:"다음 설명에 해당하는 형상관리 활동을 쓰시오.\n\n식별된 형상 항목에 대한 변경 요구를 검토·승인하여 현재의 베이스라인에 적절히 반영되도록 통제하는 활동.\n\n[보기] 형상 통제 / 형상 식별 / 형상 감사 / 형상 기록",b:[["형상 통제","Configuration Control"]]},
+ {q:"다음 설명에 해당하는 용어를 쓰시오.\n\n변수의 이름 앞에 그 변수의 자료형을 나타내는 짧은 약어를 prefix로 붙여 표기하는 방식으로, 마이크로소프트의 한 개발자에 의해 고안되었다.",b:[["헝가리안 표기법","Hungarian Notation","헝가리안 표기","헝가리안"]]},
+ {q:"다음 설명에 해당하는 용어를 쓰시오.\n\n소프트웨어의 외부 동작은 변경하지 않으면서 내부 구조를 개선하여 가독성·유지보수성·확장성을 높이는 작업.",b:[["리팩토링","Refactoring","리팩터링"]]}
+];
+
+/* ---------- 기본 문제 풀이(SEED와 같은 순서) ---------- */
+const EX=[
+/*1 IPv6*/"IPv4(32비트)의 주소 고갈 문제 해결 → 128비트 주소 체계\n기본 지원: IPSec 보안 · 자동 주소 설정 · 멀티캐스트, 헤더 단순화\n주소 유형: 유니캐스트 / 멀티캐스트 / 애니캐스트",
+/*2 즉각갱신*/"즉각 갱신: 트랜잭션 완료 전이라도 변경 내용을 즉시 DB에 반영\n→ 장애 시 로그로 REDO(재실행) + UNDO(취소) 모두 필요\n대비: 지연 갱신(Deferred Update)은 커밋 후 반영 → REDO만 필요",
+/*3 이상현상*/"원인: 정규화가 덜 된 테이블의 데이터 중복\n· 삽입 이상: 불필요한 데이터 없이는 삽입 불가\n· 삭제 이상: 삭제 시 다른 정보까지 함께 손실\n· 갱신 이상: 일부만 수정되어 데이터 불일치\n해결: 정규화",
+/*4 Hadoop*/"핵심 구성 2가지\n· HDFS: 분산 파일 시스템 (저장 담당)\n· MapReduce: 분산 병렬 처리\n'오픈소스 + 빅데이터 분산 저장/처리' 키워드 = Hadoop",
+/*5 블록체인*/"거래 정보를 블록으로 만들어 체인처럼 연결\nP2P로 모든 참여자가 공유하는 분산 원장\n→ 중앙 기관 없이도 위·변조가 매우 어려움",
+/*6 프로세스상태*/"상태 전이: 생성 → 준비 → 실행 → (대기) → 종료\n· 준비(Ready): CPU 할당 대기\n· 실행(Run): CPU 점유, 명령어 수행\n· 대기(Wait/Block): 입출력 완료 대기\n준비→실행 = 디스패치(Dispatch), 실행→준비 = 타임아웃",
+/*7 UNIX*/"키워드 조합: C 언어 작성·이식성 / 트리 구조 파일 시스템 / 셸 / 시분할·다중 사용자 = UNIX\n주의: Linux는 UNIX 기반의 오픈소스 OS — 혼동 금지",
+/*8 샘플링오라클*/"테스트 오라클 4종\n· 참(True): 모든 입력의 기대값 제공\n· 샘플링(Sampling): 특정 입력값만 제공\n· 휴리스틱(Heuristic): 샘플링 + 나머지는 추정\n· 일관성(Consistent): 수행 전후 결과 동일 확인\n'일부 특정 입력값만' = 샘플링",
+/*9 가용성*/"보안 3대 요소\n· 기밀성(Confidentiality): 인가된 사람만 열람\n· 무결성(Integrity): 위·변조 방지\n· 가용성(Availability): 필요할 때 즉시 이용 가능\n'방해받지 않고 접근' = 가용성",
+/*10 스니핑*/"스니핑(Sniffing): 패킷을 몰래 '엿보는' 수동적 공격\n대비: 스푸핑(Spoofing)은 다른 대상으로 '위장'하는 능동적 공격",
+/*11 동등분할*/"입력을 유효/무효 그룹(동치 클래스)으로 나누고 각 그룹의 대표값만 테스트\n함께 출제: 경계값 분석(Boundary Value Analysis) — 경계 근처 값을 집중 테스트",
+/*12 Regression*/"회귀 테스트\n결함 수정 후, 그 수정 때문에 새로운 결함이 생기지 않았는지 기존 테스트를 반복 수행",
+/*13 관계해석*/"관계 해석: 비절차적 언어(무엇을 원하는지만 기술), Predicate Calculus 기반\n종류: 튜플 관계 해석 / 도메인 관계 해석\n대비: 관계 대수는 절차적 언어(어떻게 구할지 연산 순서 기술)",
+/*14 VPN*/"Virtual Private Network (가상 사설망)\n공중망(인터넷)을 암호화 터널로 만들어 전용회선처럼 사용",
+/*15 IDEA/Skipjack*/"· IDEA: 128bit 키, 64bit 평문, 8라운드 블록 암호\n· Skipjack: NSA 개발, 클리퍼 칩(음성 암호화)용, 80bit 키\n둘 다 블록 암호 알고리즘",
+/*16 UML구성*/"UML 구성 3요소: 사물(Things) · 관계(Relationships) · 다이어그램(Diagrams)\n· 클래스 다이어그램: 객체 타입 정의, 속성과 연산 표현\n· 인터페이스: 구현해야 할 오퍼레이션 집합만 정의하는 모델 요소",
+/*17 SSO*/"Single Sign-On\n한 번의 로그인으로 여러 시스템 이용\n대표 기반 기술: 커버로스(Kerberos)",
+/*18 사회공학/다크데이터*/"· 사회공학: 기술이 아닌 사람의 신뢰·심리를 이용해 정보를 빼내는 기법 (피싱 등)\n· 다크 데이터: 수집·저장만 되고 분석에 쓰이지 않는 '죽은' 데이터",
+/*19 SIEM*/"Security Information and Event Management\n여러 장비의 로그·이벤트를 통합 수집 + 머신러닝 분석\n→ 위협에 선제 대응하는 보안 관제 솔루션",
+/*20 TrustZone/Typosquatting*/"· TrustZone: ARM의 하드웨어 보안 기술, 프로세서 안에 분리된 보안 구역\n· Typosquatting: URL 오타를 노려 유사 도메인 선점 (= URL 하이재킹)",
+/*21 Aggregation/Generalization*/"· 집합(Aggregation): 전체-부분, 서로 독립적 (빈 마름모)\n· 포함(Composition): 부분이 전체에 종속되는 강한 관계 (채운 마름모)\n· 일반화(Generalization): 일반-구체(상속) 관계 (빈 삼각형 화살표)",
+/*22 OSI*/"OSI 7계층(아래부터): 물리 - 데이터링크 - 네트워크 - 전송 - 세션 - 표현 - 응용\n· 데이터링크: 인접 노드 간 전송 + 오류 제어\n· 네트워크: 경로 설정(라우팅)\n· 표현: 압축 · 암호화 · 형식 변환",
+/*23 3A*/"· Authentication(인증): 누구인지 식별·검증\n· Authorization(인가): 검증된 대상에 권한 부여\n· Accounting(계정 관리): 리소스 사용 정보 수집·관리 (과금·감사)",
+/*24 클래스다이어그램*/"클래스 다이어그램 = 구조(정적) 다이어그램\n클래스의 속성·메서드(연산)와 클래스 간 관계를 표현\n도메인 내 추상적 개념 구조도 표현",
+/*25 럼바우*/"럼바우 OMT 3단계 (순서 암기: 객-동-기)\n· 객체(Object) 모델링: ER 다이어그램\n· 동적(Dynamic) 모델링: 상태 다이어그램\n· 기능(Functional) 모델링: 자료 흐름도(DFD)",
+/*26 UX/UI*/"· UX(User eXperience): 사용자가 느끼는 감정·경험\n· UI(User Interface): 정보를 주고받는 매개체 (CLI, GUI, NUI 등)\nUI가 수단이라면, UX는 그 결과로 얻는 경험",
+/*27 기능적/비기능적*/"· 기능적 요구사항: 시스템이 '무엇을' 해야 하는가 (기능·서비스)\n· 비기능적 요구사항: 성능·보안·품질 등 기능 이외의 제약사항",
+/*28 IPC*/"Inter-Process Communication (프로세스 간 통신)\n대표 기법: 공유 메모리 / 소켓 / 세마포어 / 메시지 큐 / 파이프",
+/*29 DAC*/"접근 통제 3방식\n· DAC(임의적): 신분 기반, 소유자가 자신의 판단으로 권한 부여\n· MAC(강제적): 보안 등급·레이블 기반\n· RBAC(역할 기반): 역할(Role)에 권한 부여",
+/*30 반정규화*/"정규화된 구조를 성능 향상·운영 단순화를 위해 의도적으로 되돌리는 기법\n테이블 통합·분리, 중복 컬럼 허용 등\n트레이드오프: 데이터 일관성은 떨어질 수 있음",
+/*31 WSDL*/"Web Services Description Language\n웹 서비스의 이름·위치·메시지 포맷·프로토콜을 기술한 XML 언어\n웹서비스 3요소: SOAP(통신) · WSDL(설명) · UDDI(등록/검색)",
+/*32 JUnit*/"자바용 단위 테스트 프레임워크 (xUnit 계열), @Test 애너테이션 사용\n참고: C++ = CppUnit, .NET = NUnit",
+/*33 파이썬리스트*/"· extend(): 여러 값을 한 번에 추가 (리스트 확장) — 1개만 추가하는 append()와 구분\n· pop(): 마지막(또는 지정) 요소를 삭제하며 그 값을 반환\n· reverse(): 리스트를 제자리에서 역순으로",
+/*34 삭제이상*/"삭제 이상: 튜플 하나를 지웠는데 의도치 않은 다른 정보까지 함께 사라지는 현상 (연쇄 삭제)\n삽입·갱신 이상과 함께 정규화로 해결",
+/*35 TKIP*/"Temporal Key Integrity Protocol (임시 키 무결성 프로토콜)\nWEP 취약점 보완용, IEEE 802.11i 표준의 일부\n패킷마다 키 변경(키 믹싱) + 메시지 무결성 검사(MIC), WPA에서 사용",
+/*36 OAuth*/"비밀번호를 넘기지 않고 토큰으로 접근 권한을 위임하는 개방형 표준\n대표 사례: 구글·페이스북 계정 소셜 로그인",
+/*37 static/dynamic*/"· 정적(static) 분석: 실행하지 않고 검사 — 표준 준수, 문법 오류, 잠재 결함 (pmd, cppcheck, SonarQube)\n· 동적(dynamic) 분석: 실행하면서 검사 — 메모리 누수, 커버리지 (Valgrind, Avalanche)",
+/*38 NUI*/"Natural User Interface\n말·행동·표정 등 자연스러운 표현으로 상호작용\n발전 흐름: CLI(명령어) → GUI(그래픽) → NUI(자연스러운 동작)",
+/*39 SSH*/"Secure Shell, 포트 22번\n암호화된 원격 접속·파일 전송 제공\n대비: Telnet(23번)은 평문 전송이라 취약 → SSH가 보안 대체",
+/*40 탬퍼프루핑*/"탬퍼프루핑: 위·변조(Tampering) 감지 시 실행 중단/코드 변형 → 무결성 보장\n대비: 난독화(Obfuscation)는 소스를 읽기 어렵게만 만드는 기술",
+/*41 대칭/비대칭*/"· 대칭키: 암·복호화 키 동일 (AES, DES, SEED) — 빠르지만 키 전달 문제\n· 비대칭키(공개키): 공개키 + 개인키 쌍 (RSA, ECC) — 키 분배 쉽지만 느림",
+/*42 Rootkit*/"Root(최고 권한) + Kit(도구 모음)\n침입 흔적 은폐, 백도어·원격 접근 제공\n시스템콜 후킹으로 안티바이러스 탐지 회피",
+/*43 Iterator*/"행위(Behavioral) 패턴\n컬렉션의 내부 구조를 노출하지 않고 요소에 순차적으로 접근\n'순차 접근' 키워드 = Iterator",
+/*44 smurf*/"출발지 IP를 피해자 주소로 위조한 ICMP Echo 요청을 브로드캐스트\n→ 네트워크 전체의 응답이 피해자에게 몰려 마비\n대비: Land Attack은 출발지 = 목적지를 같게 위조",
+/*45 연관/일반화/의존*/"· 연관(Association): 사물들이 서로 관련된 상태 (실선)\n· 일반화(Generalization): 일반-구체, 상속 관계\n· 의존(Dependency): 필요할 때만 잠깐 관계를 맺는 약한 관계 (점선)",
+/*46 SOAP*/"Simple Object Access Protocol\nHTTP·SMTP 위에서 XML 메시지를 주고받는 프로토콜\n웹서비스 3요소: SOAP · WSDL · UDDI — 최근엔 RESTful로 대체 가능",
+/*47 시간적응집도*/"응집도 낮음 → 높음 (암기: 우논시절통순기)\n우연적 < 논리적 < 시간적 < 절차적 < 통신적 < 순차적 < 기능적\n시간적 응집도 = 초기화처럼 같은 시점에 실행되는 기능들의 묶음",
+/*48 Prototype*/"생성(Creational) 패턴\n원형(프로토타입) 객체를 만들어 두고 복제(clone)해서 새 객체 생성\n객체 생성 비용이 클 때 유리",
+/*49 Singleton*/"생성(Creational) 패턴\n인스턴스를 단 하나만 만들고 전역 접근점을 제공\n'인스턴스 하나만' 키워드 = Singleton",
+/*50 절차적응집도*/"절차적 응집도: 순서대로 실행되지만 입출력 데이터의 연관은 없음\n대비: 순차적(Sequential) 응집도는 한 요소의 출력이 다음 요소의 입력 — 더 높은 응집도",
+/*51 EAI*/"EAI 구축 유형 4가지\n· 포인트 투 포인트: 1:1 직접 연결, 가장 단순\n· 허브 앤 스포크: 중앙 허브에 집중 — 허브 장애 시 전체 영향\n· 메시지 버스: 미들웨어 버스로 연결, 확장성 우수\n· 하이브리드: 허브 앤 스포크 + 메시지 버스 혼합",
+/*52 OSPF*/"'링크 상태(Link State) + 다익스트라 + 대규모' = OSPF (Open Shortest Path First)\n대비: RIP = 거리 벡터(홉 수 기준, 최대 15홉, 소규모)\nBGP = AS(자율 시스템) 간 외부 라우팅",
+/*53 프로토콜*/"프로토콜: 서로 다른 시스템 간 통신 규약\n기본 3요소 (암기 필수)\n· 구문(Syntax): 데이터 형식\n· 의미(Semantics): 제어 정보·오류 처리\n· 시간(Timing): 순서·속도 조절",
+/*54 블랙박스*/"블랙박스 테스트 = 내부 구조를 보지 않고 명세(입출력)만으로 검사 (명세 기반)\n종류: 동치(동등) 분할, 경계값 분석, 원인-효과 그래프, 오류 예측 등\n대비: 화이트박스는 내부 로직 기반 (구문·분기·조건 커버리지)",
+/*55 직관성*/"UI 설계 4원칙\n· 직관성: 누구나 쉽게 이해·사용\n· 유효성: 사용자 목표를 정확히 달성\n· 학습성: 누구나 쉽게 배움\n· 유연성: 요구사항 수용, 오류 최소화",
+/*56 3계층스키마*/"3계층 스키마 (암기: 사용자=외부, 전체 통합=개념, 저장=내부)\n· 외부 스키마: 사용자·개발자 관점의 논리 구조 (서브 스키마)\n· 개념 스키마: 조직 전체를 통합한 전체 논리 구조 (DBA 관점)\n· 내부 스키마: 실제 저장 장치의 물리적 구조",
+/*57 ALTER/ADD*/"컬럼(속성) 추가: ALTER TABLE 테이블명 ADD 컬럼명 타입\n참고: 변경 = MODIFY, 삭제 = DROP COLUMN\n주의: INSERT는 행(튜플)을 추가하는 DML — 구조 변경은 DDL인 ALTER",
+/*58 ICMP*/"Internet Control Message Protocol\nIP 전송 중 오류 보고·네트워크 진단 메시지 전달 (ping이 ICMP Echo 이용)\n참고: ARP = IP→MAC 주소 변환 / IGMP = 멀티캐스트 그룹 관리",
+/*59 형상통제*/"형상관리 절차: 식별 → 통제 → 감사 → 기록\n· 형상 식별: 관리 대상 정의\n· 형상 통제: 변경 요구를 검토·승인해 베이스라인 반영\n· 형상 감사: 베이스라인 무결성 검증\n· 형상 기록: 상태 보고",
+/*60 헝가리안*/"헝가리안 표기법: 변수명 앞에 자료형 접두어 (예: strName, nCount)\n다른 표기법과 구분: 카멜(camelCase) / 파스칼(PascalCase) / 스네이크(snake_case)",
+/*61 리팩토링*/"'외부 동작(기능)은 그대로 + 내부 구조 개선' 키워드 = 리팩토링\n목적: 가독성·유지보수성·확장성 향상\nXP(eXtreme Programming)의 대표 실천 항목"
+];
+SEED.forEach((s,i)=>{if(EX[i])s.ex=EX[i];});
+
+/* ---------- 유틸 ---------- */
+const $=s=>document.querySelector(s);
+const CIRC=['①','②','③','④','⑤','⑥','⑦','⑧'];
+function norm(s){return (s||'').toLowerCase().replace(/[\s\.\-_'"()（）]/g,'');}
+function uid(){return 'q'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._tm);t._tm=setTimeout(()=>t.classList.remove('show'),1800);}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+/* ---------- 저장 ---------- */
+async function loadDB(){
+  try{
+    const r=await storeGet(STORE_KEY);
+    if(r&&r.value)DB=JSON.parse(r.value);
+  }catch(e){/* 키 없음 → 초기 세팅 */}
+  if(!DB||!Array.isArray(DB.questions))DB={questions:[],stats:{}};
+  if(!DB.stats)DB.stats={};
+  // 기본 문제 병합: 없는 문제는 추가, 이미 있는 문제엔 풀이만 보충
+  const map=new Map(DB.questions.map(x=>[norm(x.q),x]));
+  let changed=false;
+  SEED.forEach(s=>{
+    const key=norm(s.q);
+    const exist=map.get(key);
+    if(!exist){
+      const nq={id:uid()+Math.random().toString(36).slice(2,4),q:s.q,b:s.b,unordered:!!s.unordered,tag:s.tag||'',ex:s.ex||''};
+      DB.questions.push(nq);map.set(key,nq);changed=true;
+    }else if(s.ex&&exist.ex!==s.ex){exist.ex=s.ex;changed=true;}
+  });
+  if(changed)await saveDB();
+}
+async function saveDB(){
+  try{
+    const r=await storeSet(STORE_KEY,JSON.stringify(DB));
+    if(!r)toast('저장에 실패했어요. 다시 시도해 주세요.');
+  }catch(e){toast('저장에 실패했어요. 다시 시도해 주세요.');}
+}
+function stat(id){return DB.stats[id]||(DB.stats[id]={att:0,ok:0,lastOk:null});}
+function wrongIds(){return DB.questions.filter(x=>{const s=DB.stats[x.id];return s&&s.att>0&&s.lastOk===false;}).map(x=>x.id);}
+
+/* ---------- 채점 ---------- */
+function grade(q,inputs){
+  // returns {per:[{ok,answer}],okCount}
+  const per=inputs.map(v=>({ok:false,user:v}));
+  if(q.unordered&&q.b.length>1){
+    const used=new Array(q.b.length).fill(false);
+    inputs.forEach((v,i)=>{
+      const nv=norm(v);if(!nv)return;
+      for(let j=0;j<q.b.length;j++){
+        if(!used[j]&&q.b[j].some(a=>norm(a)===nv)){used[j]=true;per[i].ok=true;break;}
+      }
+    });
+  }else{
+    inputs.forEach((v,i)=>{
+      const nv=norm(v);
+      per[i].ok=!!nv&&q.b[i].some(a=>norm(a)===nv);
+    });
+  }
+  return {per,okCount:per.filter(p=>p.ok).length};
+}
+
+/* ---------- 렌더 ---------- */
+function setTab(t){tab=t;['quiz','wrong','manage'].forEach(x=>$('#tab-'+x).classList.toggle('on',x===t));render();}
+function updateHeader(){
+  $('#totalCount').textContent='총 '+DB.questions.length+'문제';
+  const w=wrongIds().length,b=$('#wrongBadge');
+  b.style.display=w?'inline-block':'none';b.textContent=w;
+}
+function render(){
+  updateHeader();
+  if(tab==='quiz')renderQuiz(false);
+  else if(tab==='wrong')renderQuiz(true);
+  else renderManage();
+}
+
+/* ----- 퀴즈 화면 ----- */
+function startSession(mode,onlyWrong){
+  let ids=onlyWrong?wrongIds():DB.questions.map(x=>x.id);
+  if(mode==='random')ids=shuffle(ids);
+  session={ids,idx:0,ok:0,mode,onlyWrong,submitted:false,lastResult:null};
+}
+function renderQuiz(onlyWrong){
+  const v=$('#view');
+  const pool=onlyWrong?wrongIds():DB.questions.map(x=>x.id);
+  if(pool.length===0){
+    v.innerHTML='<div class="card empty">'+(onlyWrong?'오답이 없어요. 전부 맞히셨네요! 🎉':'등록된 문제가 없어요. [문제 관리]에서 추가해 주세요.')+'</div>';
+    session=null;return;
+  }
+  if(!session||session.onlyWrong!==onlyWrong)startSession('random',onlyWrong);
+  // 세션 완료
+  if(session.idx>=session.ids.length){
+    v.innerHTML=`<div class="card done-card">
+      <div class="big"><span class="c">${session.ok}</span> / ${session.ids.length}</div>
+      <div style="color:var(--ink-soft);margin-bottom:20px;">한 바퀴 완료! ${session.ok===session.ids.length?'완벽해요 👏':'틀린 문제는 오답 노트에서 다시 풀 수 있어요.'}</div>
+      <div class="btn-row" style="justify-content:center;">
+        <button class="primary" id="againBtn">다시 풀기</button>
+        ${wrongIds().length&&!onlyWrong?'<button class="ghost" id="goWrongBtn">오답만 풀기</button>':''}
+      </div></div>`;
+    $('#againBtn').onclick=()=>{startSession(session.mode,onlyWrong);render();};
+    const g=$('#goWrongBtn');if(g)g.onclick=()=>setTab('wrong');
+    return;
+  }
+  const q=DB.questions.find(x=>x.id===session.ids[session.idx]);
+  if(!q){session.idx++;render();return;}
+  const multi=q.b.length>1;
+  let html=`<div class="toolbar">
+      <button class="chip ${session.mode==='random'?'on':''}" id="mRandom">랜덤</button>
+      <button class="chip ${session.mode==='order'?'on':''}" id="mOrder">순서대로</button>
+      <span class="progress">${session.idx+1} / ${session.ids.length} · 맞힌 문제 ${session.ok}</span>
+    </div>
+    <div class="card">
+      ${q.tag?'<span class="tag">'+esc(q.tag)+'</span>':''}
+      <div class="qtext">${esc(q.q)}</div>
+      <div class="blanks">`;
+  q.b.forEach((_,i)=>{
+    html+=`<div class="blank-row">${multi?'<span class="num">'+(CIRC[i]||i+1)+'</span>':''}
+      <input type="text" data-i="${i}" placeholder="답 입력" autocomplete="off" ${session.submitted?'disabled':''}>
+    </div>`;
+  });
+  html+=`</div>`;
+  if(!session.submitted){
+    html+=`<div class="btn-row"><button class="primary" id="submitBtn">채점하기</button>
+      <button class="ghost" id="giveupBtn">정답 보기</button></div>
+      <div class="hint">Enter로 바로 채점할 수 있어요.${q.unordered?' · 순서는 상관없어요.':''}</div>`;
+  }
+  html+=`<div id="resultBox"></div></div>`;
+  v.innerHTML=html;
+
+  $('#mRandom').onclick=()=>{startSession('random',onlyWrong);render();};
+  $('#mOrder').onclick=()=>{startSession('order',onlyWrong);render();};
+
+  const inputs=[...v.querySelectorAll('.blank-row input')];
+  if(session.submitted){showResult(q,session.lastResult);}
+  else{
+    inputs[0].focus();
+    inputs.forEach(inp=>inp.addEventListener('keydown',e=>{
+      if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();
+        const i=+inp.dataset.i;
+        if(i<inputs.length-1&&inputs.slice(i+1).some(x=>!x.value.trim())){
+          (inputs.slice(i+1).find(x=>!x.value.trim())).focus();
+        }else submit();
+      }
+    }));
+    $('#submitBtn').onclick=submit;
+    $('#giveupBtn').onclick=()=>submit(true);
+  }
+
+  async function submit(giveup){
+    const vals=inputs.map(x=>giveup?'':x.value);
+    const res=grade(q,vals);
+    const allOk=!giveup&&res.okCount===q.b.length;
+    session.submitted=true;
+    session.lastResult={res,giveup:!!giveup};
+    if(allOk)session.ok++;
+    const s=stat(q.id);s.att++;if(allOk)s.ok++;s.lastOk=allOk;
+    await saveDB();updateHeader();
+    inputs.forEach((inp,i)=>{inp.disabled=true;inp.classList.add(res.per[i].ok?'ok':'no');});
+    const br=$('.btn-row'),h=$('.hint');if(br)br.remove();if(h)h.remove();
+    showResult(q,session.lastResult);
+  }
+
+  function showResult(q,{res,giveup}){
+    const allOk=!giveup&&res.okCount===q.b.length;
+    const multi=q.b.length>1;
+    let verdict,cls;
+    if(allOk){verdict='정답! ⭕';cls='ok';}
+    else if(!giveup&&res.okCount>0){verdict=`부분 정답 ${res.okCount}/${q.b.length}`;cls='part';}
+    else{verdict=giveup?'정답 확인':'오답 ❌';cls='no';}
+    let html=`<div class="result"><div class="verdict ${cls}">${verdict}</div>`;
+    q.b.forEach((answers,i)=>{
+      const p=res.per[i];
+      html+=`<div class="ans-line">${multi?'<span class="lbl">'+(CIRC[i]||i+1)+'</span>':''}`;
+      if(p&&p.ok){html+=`<span class="ok">${esc(p.user)}</span> ✓`;}
+      else{
+        if(p&&p.user.trim())html+=`<span class="no">${esc(p.user)}</span> → `;
+        html+=`<span class="real">${answers.map(esc).join(' 또는 ')}</span>`;
+      }
+      html+=`</div>`;
+    });
+    if(q.ex)html+=`<div class="explain"><span class="ex-lbl">풀이</span>${esc(q.ex)}</div>`;
+    html+=`<div class="btn-row" style="margin-top:14px;"><button class="primary" id="nextBtn">다음 문제 →</button></div></div>`;
+    $('#resultBox').innerHTML=html;
+    const nb=$('#nextBtn');
+    nb.focus();
+    nb.onclick=()=>{session.idx++;session.submitted=false;session.lastResult=null;render();};
+  }
+}
+
+/* ----- 관리 화면 ----- */
+function renderManage(){
+  const v=$('#view');
+  const total=DB.questions.length;
+  let html=`<div class="card form-card" id="formCard">
+    <label>${editingId?'문제 수정':'새 문제 추가'}</label>
+    <textarea id="fQ" placeholder="문제 내용을 입력하세요. 괄호 문제는 ( ① ) 처럼 표시하면 좋아요."></textarea>
+    <label>정답 (빈칸별로 입력 · 인정되는 답이 여러 개면 쉼표로 구분: 예) 블록체인, Blockchain)</label>
+    <div id="blankEdits"></div>
+    <button class="add-blank" id="addBlank">+ 빈칸 추가 (①②③…)</button>
+    <div class="check-row"><input type="checkbox" id="fUnordered"><label for="fUnordered" style="margin:0;font-weight:500;">여러 빈칸의 순서 상관없음 (예: "3가지를 쓰시오")</label></div>
+    <label>풀이 / 해설 (선택)</label>
+    <textarea id="fEx" placeholder="채점 후에 함께 보여줄 해설을 입력하세요." style="min-height:70px;"></textarea>
+    <label>출처 태그 (선택)</label>
+    <input type="text" id="fTag" placeholder="예: [실기]22년3회">
+    <div class="btn-row" style="margin-top:16px;">
+      <button class="primary" id="saveQ">${editingId?'수정 저장':'문제 추가'}</button>
+      ${editingId?'<button class="ghost" id="cancelEdit">취소</button>':''}
+    </div>
+  </div>
+  <div class="statline" style="margin-top:20px;">전체 <b>${total}</b>문제${wrongIds().length?` · 오답 <b>${wrongIds().length}</b>문제`:''}</div>
+  <div class="qlist">`;
+  DB.questions.forEach((q,idx)=>{
+    const s=DB.stats[q.id];
+    html+=`<div class="qitem" data-id="${q.id}">
+      <div class="preview">${idx+1}. ${esc(q.q)}</div>
+      <div class="meta">
+        <span class="ansview">정답: ${q.b.map(a=>a[0]).map(esc).join(' / ')}</span>
+        ${q.tag?'<span>'+esc(q.tag)+'</span>':''}
+        ${s&&s.att?`<span>${s.att}회 풀이 · ${s.ok}회 정답${s.lastOk===false?' · <b style="color:var(--wrong)">최근 오답</b>':''}</span>`:'<span>아직 안 푼 문제</span>'}
+      </div>
+      <div class="acts"><button class="edit">수정</button><button class="del">삭제</button></div>
+    </div>`;
+  });
+  html+=`</div><div class="btn-row" style="margin-top:20px;">
+    <button class="danger-ghost" id="resetStats">풀이 기록 초기화</button>
+  </div>`;
+  v.innerHTML=html;
+
+  // 빈칸 편집 UI
+  const be=$('#blankEdits');
+  function addBlankRow(val=''){
+    const n=be.children.length;
+    const row=document.createElement('div');row.className='blank-edit';
+    row.innerHTML=`<span class="num">${CIRC[n]||n+1}</span><input type="text" placeholder="정답 (쉼표로 여러 개)" value="${esc(val)}"><button class="rm" title="삭제">✕</button>`;
+    row.querySelector('.rm').onclick=()=>{if(be.children.length>1){row.remove();renum();}};
+    be.appendChild(row);
+  }
+  function renum(){[...be.children].forEach((r,i)=>r.querySelector('.num').textContent=CIRC[i]||i+1);}
+  $('#addBlank').onclick=()=>addBlankRow();
+
+  // 수정 모드 값 채우기
+  if(editingId){
+    const q=DB.questions.find(x=>x.id===editingId);
+    if(q){
+      $('#fQ').value=q.q;$('#fTag').value=q.tag||'';$('#fEx').value=q.ex||'';$('#fUnordered').checked=!!q.unordered;
+      q.b.forEach(a=>addBlankRow(a.join(', ')));
+      $('#formCard').scrollIntoView({behavior:'smooth'});
+    }else{editingId=null;addBlankRow();}
+    const c=$('#cancelEdit');if(c)c.onclick=()=>{editingId=null;renderManage();};
+  }else addBlankRow();
+
+  $('#saveQ').onclick=async()=>{
+    const qt=$('#fQ').value.trim();
+    const blanks=[...be.querySelectorAll('input')].map(i=>i.value.split(',').map(s=>s.trim()).filter(Boolean)).filter(a=>a.length);
+    if(!qt){toast('문제 내용을 입력해 주세요.');return;}
+    if(!blanks.length){toast('정답을 1개 이상 입력해 주세요.');return;}
+    const data={q:qt,b:blanks,unordered:$('#fUnordered').checked&&blanks.length>1,tag:$('#fTag').value.trim(),ex:$('#fEx').value.trim()};
+    if(editingId){
+      const q=DB.questions.find(x=>x.id===editingId);
+      Object.assign(q,data);editingId=null;
+      await saveDB();toast('문제를 수정했어요.');
+    }else{
+      DB.questions.push({id:uid(),...data});
+      await saveDB();toast('문제를 추가했어요.');
+    }
+    session=null;renderManage();updateHeader();
+  };
+
+  v.querySelectorAll('.qitem').forEach(el=>{
+    const id=el.dataset.id;
+    el.querySelector('.edit').onclick=()=>{editingId=id;renderManage();};
+    el.querySelector('.del').onclick=async()=>{
+      if(!confirm('이 문제를 삭제할까요?'))return;
+      DB.questions=DB.questions.filter(x=>x.id!==id);delete DB.stats[id];
+      if(editingId===id)editingId=null;
+      session=null;await saveDB();renderManage();updateHeader();toast('삭제했어요.');
+    };
+  });
+  $('#resetStats').onclick=async()=>{
+    if(!confirm('모든 풀이 기록(정답/오답)을 초기화할까요? 문제는 그대로 남아요.'))return;
+    DB.stats={};session=null;await saveDB();renderManage();updateHeader();toast('기록을 초기화했어요.');
+  };
+}
+
+/* ---------- 시작 ---------- */
+$('#tab-quiz').onclick=()=>{session=null;setTab('quiz');};
+$('#tab-wrong').onclick=()=>{session=null;setTab('wrong');};
+$('#tab-manage').onclick=()=>setTab('manage');
+(async()=>{
+  try{
+    detectStorage();
+    await loadDB();
+  }catch(e){
+    // 어떤 오류가 나도 기본 문제로 시작
+    if(!DB||!Array.isArray(DB.questions)||!DB.questions.length){
+      DB={questions:SEED.map(s=>({id:uid()+Math.random().toString(36).slice(2,4),q:s.q,b:s.b,unordered:!!s.unordered,tag:s.tag||'',ex:s.ex||''})),stats:{}};
+    }
+  }
+  render();
+  if(storageMode==='memory')toast('이 환경에서는 기록이 저장되지 않아요 (창을 닫으면 초기화)');
+})();
+</script>
+</body>
+</html>
